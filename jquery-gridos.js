@@ -24,12 +24,17 @@
 
 ;(function ($) {
 
+var constants = Object.freeze({
+    "CELL_MODE_COLOR": 1 ,
+    "CELL_MODE_STATE": 2 ,
+});
 
 	var Cell = function (lig, col) {
 		this.lig = lig;
 		this.col = col;
-		this.color = '0xFF0000'
+		this.color = '#000008'
 		this.state = false;
+		this.mode  = constants.CELL_MODE_COLOR;
 		this.height = 10;
 		this.width = 10;
 		this.top = 0;
@@ -80,7 +85,7 @@
 			cell_border_color : '#000000',
 			cell_on_color     : '#2bfffd',
 			cell_off_color    : '#808080',
-			time_interval_ms  : 60,
+			time_interval_ms  : 120,
 			nb_cols           : 6,
             nb_ligs           : 2
  
@@ -107,10 +112,38 @@
 
 		var computeNextFrame = function () {
 			//console.log ("step="+step);
+			/*
 			Cells[frame].state=false;
 			frame++;
 			frame%=Cells.length;
 			Cells[frame].state=true;
+			*/
+			$.each(Cells, function (index, cell) {		
+				var i=0;
+				if (index < (Cells.length-1)) {
+					i = index+1;
+				}
+				cell.color=Cells[i].color;
+				//console.log ("index=" + index);
+				
+			});
+			if (frame%20==0) {
+				//Cells[Cells.length-1].color = '#123456';
+				var r = Math.floor(Math.random()*255);
+				var g = Math.floor(Math.random()*255);
+				var b = Math.floor(Math.random()*255) ;
+				Cells[Cells.length-1].color = "#"+(r).toString(16)+(g).toString(16)+(b).toString(16);
+			}
+
+			if (frame%500==499) {
+				var r = Math.floor(Math.random()*255);
+				var g = Math.floor(Math.random()*255);
+				var b = Math.floor(Math.random()*255) ;
+				$.each(Cells, function (index, cell) {		
+					cell.color="#"+(r).toString(16)+(g).toString(16)+(b).toString(16);
+				});
+			}
+			frame++;
 		};
 
 		function updateTimer() {
@@ -152,10 +185,14 @@
 				ctx.fillRect(0, 0, width, height);
 
 				$.each(Cells, function (index, cell) {
-					if (cell.state ==true) {
-						ctx.fillStyle = settings.cell_on_color;
+					if (this.mode == constants.CELL_MODE_STATE) {
+						if (cell.state ==true) {
+							ctx.fillStyle = settings.cell_on_color;
+						} else {
+							ctx.fillStyle = settings.cell_off_color;
+						}
 					} else {
-						ctx.fillStyle = settings.cell_off_color;
+						ctx.fillStyle = cell.color;
 					}
 					ctx.fillRect(cell.left, cell.top, cell.width, cell.height);
 					//console.log ("index=" + index);
